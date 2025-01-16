@@ -1,24 +1,6 @@
 version: '3.8'
 
 services:
-  backend:
-    image: node:16
-    container_name: dapp-node
-    networks:
-      dapp-network:
-        aliases:
-          - backend
-    depends_on:
-      - db
-    environment:
-      - NODE_ENV=development
-    ports:
-      - "5000:5000"
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: "node server.js"
-
   db:
     image: postgres:latest
     container_name: dapp-for-business_db_1
@@ -35,10 +17,45 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
+  backend:
+    build: .
+    image: node:16
+    container_name: dapp-node
+    networks:
+      dapp-network:
+        aliases:
+          - backend
+    depends_on:
+      - db
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://Alex:avtb140985@db:5432/HB3A
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: "node server.js"
+
+  frontend:
+    build:
+      context: ./frontend
+    image: node:16
+    container_name: dapp-frontend
+    networks:
+      dapp-network:
+        aliases:
+          - frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    working_dir: /app
+    command: "npm start"
+
 networks:
   dapp-network:
     driver: bridge
 
 volumes:
   postgres-data:
-

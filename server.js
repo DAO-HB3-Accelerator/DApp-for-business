@@ -1,24 +1,24 @@
-const express = require('express');
-const sequelize = require('./config/db');
+const User = require('./models/user');
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+(async () => {
+    try {
+        await sequelize.sync(); // Создаёт таблицы в базе данных
+        console.log('Database synchronized.');
 
-app.use(express.json());
+        // Пример создания нового пользователя
+        const newUser = await User.create({
+            username: 'alex',
+            email: 'alex@example.com',
+            password: 'hashed_password',
+        });
 
-app.get('/', (req, res) => {
-    res.send('Web3 DApp for business!');
-});
+        console.log('New user created:', newUser);
 
-// Тестирование подключения к базе данных
-sequelize.authenticate()
-    .then(() => {
-        console.log('Подключение к базе данных успешно установлено.');
-    })
-    .catch((err) => {
-        console.error('Ошибка при подключении к базе данных:', err);
-    });
+        // Пример запроса существующего пользователя
+        const user = await User.findOne({ where: { username: 'alex' } });
+        console.log('User found:', user);
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+    } catch (error) {
+        console.error('Error during database operation:', error);
+    }
+})();
