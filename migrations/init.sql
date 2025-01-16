@@ -1,0 +1,12 @@
+-- Создание таблицы пользователей
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+-- Создание роли и пользователя
+CREATE ROLE admin WITH LOGIN PASSWORD 'adminpassword';
+GRANT ALL PRIVILEGES ON DATABASE "HB3A" TO admin;
+
