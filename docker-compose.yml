@@ -53,9 +53,29 @@ services:
     working_dir: /app
     command: "npm start"
 
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - monitoring
+    volumes:
+      - grafana-data:/var/lib/grafana
+
 networks:
   dapp-network:
+    driver: bridge
+  monitoring:
     driver: bridge
 
 volumes:
   postgres-data:
+  grafana-data:

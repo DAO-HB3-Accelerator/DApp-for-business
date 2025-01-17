@@ -1,0 +1,63 @@
+{
+    "dashboard": {
+      "id": null,
+      "uid": "blockchain-dashboard",
+      "title": "Blockchain Node Metrics",
+      "tags": ["blockchain"],
+      "timezone": "browser",
+      "panels": [
+        {
+          "id": 1,
+          "type": "graph",
+          "title": "Node Latency",
+          "targets": [
+            {
+              "expr": "rate(node_latency_seconds_sum[5m]) / rate(node_latency_seconds_count[5m])",
+              "refId": "A"
+            }
+          ],
+          "datasource": "Prometheus",
+          "xaxis": {
+            "mode": "time"
+          },
+          "yaxes": [
+            {
+              "format": "s",
+              "label": "Latency"
+            },
+            {
+              "format": "short"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "graph",
+          "title": "Block Sync Time",
+          "targets": [
+            {
+              "expr": "rate(block_sync_seconds_sum[5m]) / rate(block_sync_seconds_count[5m])",
+              "refId": "B"
+            }
+          ],
+          "datasource": "Prometheus",
+          "xaxis": {
+            "mode": "time"
+          },
+          "yaxes": [
+            {
+              "format": "s",
+              "label": "Sync Time"
+            },
+            {
+              "format": "short"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 26,
+      "version": 1,
+      "refresh": "10s"
+    }
+  }
+  

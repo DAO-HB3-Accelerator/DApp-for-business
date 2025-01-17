@@ -1,0 +1,63 @@
+{
+    "dashboard": {
+      "id": null,
+      "uid": "backend-dashboard",
+      "title": "Backend Performance",
+      "tags": ["backend"],
+      "timezone": "browser",
+      "panels": [
+        {
+          "id": 1,
+          "type": "graph",
+          "title": "API Response Time",
+          "targets": [
+            {
+              "expr": "rate(api_response_time_seconds_sum[5m]) / rate(api_response_time_seconds_count[5m])",
+              "refId": "A"
+            }
+          ],
+          "datasource": "Prometheus",
+          "xaxis": {
+            "mode": "time"
+          },
+          "yaxes": [
+            {
+              "format": "s",
+              "label": "Response Time"
+            },
+            {
+              "format": "short"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "graph",
+          "title": "HTTP 5xx Errors",
+          "targets": [
+            {
+              "expr": "rate(http_requests_total{status=~\"5..\"}[5m])",
+              "refId": "B"
+            }
+          ],
+          "datasource": "Prometheus",
+          "xaxis": {
+            "mode": "time"
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": "Requests"
+            },
+            {
+              "format": "short"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 26,
+      "version": 1,
+      "refresh": "10s"
+    }
+  }
+  
