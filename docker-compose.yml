@@ -1,13 +1,9 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:latest
     container_name: dapp-for-business_db_1
     networks:
-      dapp-network:
-        aliases:
-          - database
+      - dapp-for-business_dapp-network
     environment:
       POSTGRES_USER: Alex
       POSTGRES_PASSWORD: avtb140985
@@ -16,17 +12,21 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U Alex -d HB3A"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: .
     image: node:16
     container_name: dapp-node
     networks:
-      dapp-network:
-        aliases:
-          - backend
+      - dapp-for-business_dapp-network
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgres://Alex:avtb140985@db:5432/HB3A
@@ -43,9 +43,7 @@ services:
     image: node:16
     container_name: dapp-frontend
     networks:
-      dapp-network:
-        aliases:
-          - frontend
+      - dapp-for-business_dapp-network
     ports:
       - "3000:3000"
     volumes:
@@ -53,29 +51,10 @@ services:
     working_dir: /app
     command: "npm start"
 
-  node-exporter:
-    image: prom/node-exporter:latest
-    ports:
-      - "9100:9100"
-    networks:
-      - monitoring
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3001:3000"
-    networks:
-      - monitoring
-    volumes:
-      - grafana-data:/var/lib/grafana
-
-networks:
-  dapp-network:
-    driver: bridge
-  monitoring:
-    driver: bridge
-
 volumes:
   postgres-data:
   grafana-data:
+
+networks:
+  dapp-for-business_dapp-network:
+    external: true
