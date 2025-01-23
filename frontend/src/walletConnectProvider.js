@@ -1,16 +1,15 @@
 import SignClient from "@walletconnect/sign-client";
 
-// Инициализация переменной для клиента
+// Инициализация переменных для клиента и сессии
 let signClient;
 let session;
 
 // Функция для инициализации WalletConnect
-const initWalletConnect = async () => {
+export const initWalletConnect = async () => {
   try {
-    // Инициализация клиента WalletConnect
     signClient = await SignClient.init({
       projectId: "0a638a0eb4f44e61eb6497f883765994", // Зарегистрируйте проект на https://cloud.walletconnect.com/
-      relayUrl: "wss://relay.walletconnect.com", // URL релея для WebSocket-соединения
+      relayUrl: "wss://relay.walletconnect.com",
       metadata: {
         name: "DApp",
         description: "DApp for business",
@@ -25,20 +24,18 @@ const initWalletConnect = async () => {
   }
 };
 
-// Функция для создания сессии
-const createSession = async () => {
+// Функция для создания сессии (подключение кошелька)
+export const createSession = async () => {
   try {
-    // Если клиент не инициализирован
     if (!signClient) {
       throw new Error("WalletConnect client is not initialized");
     }
 
-    // Создание сессии (подключение кошелька)
     session = await signClient.connect({
       method: "wallet_connect",
       params: [
         {
-          chainId: 1, // Ethereum Mainnet (или используйте другой ID сети)
+          chainId: 17000, // Holesky Testnet
         },
       ],
     });
@@ -49,8 +46,8 @@ const createSession = async () => {
   }
 };
 
-// Функция для отправки транзакции через WalletConnect
-const sendTransaction = async (transactionData) => {
+// Функция для отправки транзакции
+export const sendTransaction = async (transactionData) => {
   try {
     if (!session) {
       throw new Error("No active WalletConnect session");
@@ -68,7 +65,7 @@ const sendTransaction = async (transactionData) => {
 };
 
 // Функция для отключения сессии
-const disconnectWallet = async () => {
+export const disconnectWallet = async () => {
   try {
     if (!session) {
       throw new Error("No active WalletConnect session to disconnect");
@@ -82,6 +79,5 @@ const disconnectWallet = async () => {
   }
 };
 
-// Экспортируем функции
-export { initWalletConnect, createSession, sendTransaction, disconnectWallet };
-
+// Экспортируем текущую сессию
+export { session };

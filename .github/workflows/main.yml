@@ -1,12 +1,16 @@
 name: CI/CD Pipeline
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  # Для временной приостановки автоматического запуска
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
+
+  # Ручной запуск пайплайна
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,6 +19,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -32,7 +47,21 @@ jobs:
           cd frontend
           npm run build
 
-      - name: Deploy backend
+      # Build and start Docker containers for backend and frontend
+      - name: Build Docker images
+        run: docker-compose -f docker-compose.yml build
+
+      - name: Start Docker containers
+        run: docker-compose -f docker-compose.yml up -d
+
+      - name: Deploy backend (if applicable)
         run: |
           cd ../
           npm run deploy
+          
+      - name: Run backend tests (optional)
+        run: |
+          docker exec -t dapp-node npm test  # Запуск тестов в контейнере, если они есть
+
+      - name: Stop Docker containers
+        run: docker-compose down
