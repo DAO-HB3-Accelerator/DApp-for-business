@@ -2,8 +2,12 @@
 .env
 node_modules/
 
-node_modules
+# Environment variable files
 .env
+frontend/.env
+
+# Node modules
+node_modules/
 
 # Hardhat files
 /cache

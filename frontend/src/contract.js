@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { session } from "./walletConnectProvider"; // Экспортируемая сессия WalletConnect
 
 // Адрес и ABI контракта
-const CONTRACT_ADDRESS = "0xA143058cAd27949b7d4FE04D0f27eBbC3f81b71A";
+const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
 const CONTRACT_ABI = [
   {
     "inputs": [
@@ -47,14 +47,46 @@ const CONTRACT_ABI = [
   }
 ];
 
+let cachedProvider = null;
+let cachedContract = null;
+let lastChainId = null;
+
+export const resetCache = () => {
+    cachedProvider = null;
+    cachedContract = null;
+    lastChainId = null;
+};
+
 export async function getContract() {
-  if (!session) {
-    throw new Error("Wallet is not connected");
-  }
+    if (!session) {
+        throw new Error("Wallet is not connected");
+    }
 
-  const provider = new ethers.BrowserProvider(session);
-  const signer = await provider.getSigner();
-  const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    try {
+        if (!cachedProvider) {
+            cachedProvider = new ethers.BrowserProvider(session);
+        }
 
-  return contract;
+        // Проверяем изменение сети
+        const network = await cachedProvider.getNetwork();
+        const currentChainId = network.chainId;
+
+        if (lastChainId && lastChainId !== currentChainId) {
+            resetCache();
+            cachedProvider = new ethers.BrowserProvider(session);
+        }
+
+        lastChainId = currentChainId;
+
+        if (!cachedContract) {
+            const signer = await cachedProvider.getSigner();
+            cachedContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+        }
+
+        return cachedContract;
+    } catch (error) {
+        console.error("Error getting contract:", error);
+        resetCache();
+        throw error;
+    }
 }

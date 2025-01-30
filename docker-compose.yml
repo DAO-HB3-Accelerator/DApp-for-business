@@ -1,19 +1,21 @@
+version: '3.8'
+
 services:
   db:
-    image: postgres:latest
+    image: postgres:14
     container_name: dapp-for-business_db_1
     networks:
       - dapp-for-business_dapp-network
     environment:
-      POSTGRES_USER: Alex
-      POSTGRES_PASSWORD: avtb140985
-      POSTGRES_DB: HB3A
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dappdb
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U Alex -d HB3A"]
+      test: ["CMD-SHELL", "pg_isready -U user -d dappdb"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,7 +31,7 @@ services:
         condition: service_healthy
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgres://Alex:avtb140985@db:5432/HB3A
+      - DATABASE_URL=postgres://user:password@db:5432/dappdb
     ports:
       - "5000:5000"
     volumes:
@@ -40,6 +42,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     image: node:16
     container_name: dapp-frontend
     networks:
@@ -48,11 +51,12 @@ services:
       - "3000:3000"
     volumes:
       - ./frontend:/app
+      - /app/node_modules
     working_dir: /app
     command: "npm start"
 
 volumes:
-  postgres-data:
+  postgres_data:
   grafana-data:
 
 networks:

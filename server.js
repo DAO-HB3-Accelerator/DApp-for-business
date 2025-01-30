@@ -1,50 +1,99 @@
-// Подключаем необходимые модули
 const express = require('express');
 const sequelize = require('./config/db');
 const User = require('./models/user');
-require('dotenv').config();  // Подключаем dotenv для работы с переменными окружения
+const bcrypt = require('bcryptjs');
+require('dotenv').config();
 
-// Создаем экземпляр приложения
 const app = express();
-const PORT = process.env.PORT || 5000;  // Используем переменную окружения для порта, если она указана
+const PORT = process.env.PORT || 5000;
 
-// Вытягиваем переменные окружения для использования в коде
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+// Добавляем middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+// Функция валидации email
+const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+};
 
-// Функция для синхронизации базы данных и работы с пользователями
-(async () => {
+// Роут для регистрации пользователя
+app.post('/api/register', async (req, res) => {
     try {
-        // Синхронизация базы данных
+        const { username, email, password } = req.body;
+
+        // Валидация
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        if (!validateEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+
+        if (password.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters' });
+        }
+
+        // Проверка существующего пользователя
+        const existingUser = await User.findOne({ 
+            where: { 
+                [sequelize.Op.or]: [{ username }, { email }] 
+            } 
+        });
+
+        if (existingUser) {
+            return res.status(400).json({ error: 'Username or email already exists' });
+        }
+
+        // Хеширование пароля
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Создание пользователя
+        const newUser = await User.create({
+            username,
+            email,
+            password: hashedPassword,
+        });
+
+        // Удаляем пароль из ответа
+        const userResponse = { ...newUser.toJSON() };
+        delete userResponse.password;
+
+        res.status(201).json(userResponse);
+    } catch (error) {
+        console.error('Error during registration:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Роут для проверки работы сервера
+app.get('/health', (req, res) => {
+    res.json({ status: 'Server is running' });
+});
+
+// Обработка ошибок
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something broke!' });
+});
+
+// Запуск сервера
+const startServer = async () => {
+    try {
+        await sequelize.authenticate();
+        console.log('Database connection established successfully.');
+        
         await sequelize.sync();
         console.log('Database synchronized.');
 
-        // Создание нового пользователя (псевдокод, используйте хеширование пароля в реальном проекте)
-        const newUser = await User.create({
-            username: 'alex',
-            email: 'alex@example.com',
-            password: 'hashed_password', // Здесь должен быть хешированный пароль
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
         });
-
-        console.log('New user created:', newUser);
-
-        // Поиск пользователя по имени
-        const user = await User.findOne({ where: { username: 'alex' } });
-        console.log('User found:', user);
-
     } catch (error) {
-        console.error('Error during database operation:', error);
+        console.error('Unable to start server:', error);
+        process.exit(1);
     }
-})();
+};
 
-// Роут для проверки работы сервера
-app.get('/', (req, res) => {
-    res.send('Server is running');
-});
-
-// Запуск сервера на указанном порту
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+startServer();
