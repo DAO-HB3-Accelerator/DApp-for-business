@@ -1,8 +1,9 @@
 import { ethers } from "ethers";
-import { session } from "./walletConnectProvider"; // Экспортируемая сессия WalletConnect
+import { getSession } from "./walletConnectProvider"; // Импортируйте getSession вместо session
 
 // Адрес и ABI контракта
 const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
+const REOWN_API_KEY = process.env.REACT_APP_REOWN_API_KEY; // Добавлено для использования API ключа
 const CONTRACT_ABI = [
   {
     "inputs": [
@@ -58,6 +59,7 @@ export const resetCache = () => {
 };
 
 export async function getContract() {
+    const session = getSession(); // Получаем сессию через getSession
     if (!session) {
         throw new Error("Wallet is not connected");
     }

@@ -4,6 +4,8 @@ import TokenBalance from "./TokenBalance";
 import TransferTokens from "./TransferTokens";
 import "./App.css";
 
+const reownApiKey = process.env.REACT_APP_REOWN_API_KEY;
+
 function App() {
   const [connected, setConnected] = useState(false);
 

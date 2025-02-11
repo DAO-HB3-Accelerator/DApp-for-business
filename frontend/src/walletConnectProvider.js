@@ -1,7 +1,7 @@
-import SignClient from "@walletconnect/sign-client";
+import { initWalletConnect, createSession, disconnectWallet } from "@reown/appkit";
 
 let signClient;
-let session;
+let session; // Убрано export для устранения конфликта
 
 export const initWalletConnect = async () => {
   try {
@@ -48,5 +48,26 @@ export const createSession = async () => {
     throw error;
   }
 };
+
+// Логика отключения кошелька
+export const disconnectWallet = async () => {
+  try {
+    if (!signClient) {
+      throw new Error("WalletConnect client is not initialized");
+    }
+
+    await signClient.disconnect();
+    console.log("Wallet disconnected successfully");
+  } catch (error) {
+    console.error("Error disconnecting wallet:", error);
+    throw new Error("Ошибка при отключении кошелька: " + error.message);
+  }
+};
+
+// Убедитесь, что session экспортируется правильно
+export const getSession = () => session; // Функция для получения текущей сессии
+
+// Экспортируем session
+export { session }; // Добавьте эту строку, чтобы экспортировать session
 
 // ... rest of the existing code ...
