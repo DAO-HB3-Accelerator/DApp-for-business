@@ -1,20 +1,20 @@
-# Установка базового образа
-FROM node:18
+# Используем официальный образ Node.js
+FROM node:20-alpine
 
-# Установка рабочей директории
-WORKDIR /app
+# Устанавливаем рабочую директорию
+WORKDIR /usr/src/app
 
-# Копирование зависимостей
-COPY package*.json ./
+# Копируем package.json и package-lock.json
+COPY package.json package-lock.json ./
 
-# Установка зависимостей
-RUN npm install
+# Устанавливаем зависимости
+RUN npm install --production
 
-# Копирование всего проекта в контейнер
+# Копируем остальные файлы проекта
 COPY . .
 
-# Экспонирование порта
-EXPOSE 5000
+# Устанавливаем переменные окружения из файла .env
+COPY .env .env
 
-# Команда для запуска приложения
+# Указываем команду для запуска приложения
 CMD ["node", "server.js"]

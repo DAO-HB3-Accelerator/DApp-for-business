@@ -8,6 +8,7 @@ frontend/.env
 
 # Node modules
 node_modules/
+frontend/node_modules/
 
 # Hardhat files
 /cache

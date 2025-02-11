@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { verify } from "@nomicfoundation/hardhat-verify";
+import { run } from "hardhat"; // Импортируем run, а не verify
 
 async function main() {
     try {
@@ -20,44 +20,49 @@ async function main() {
 
         // Получаем информацию о газе
         const feeData = await provider.getFeeData();
-        console.log("Current gas price:", ethers.formatUnits(feeData.gasPrice || 0, "gwei"), "gwei");
+        console.log("Current gas price:", (feeData.gasPrice ? ethers.getDefaultProvider().formatUnits(feeData.gasPrice, "gwei") : "неизвестно"), "gwei");
 
         const balance = await provider.getBalance(deployer.address);
-        console.log("Account balance:", ethers.formatEther(balance), "ETH");
-
+        console.log("Account balance:", ethers.getDefaultProvider().formatEther(balance), "ETH");
         // Проверка минимального баланса
-        const minimumBalance = ethers.parseEther("0.01");
-        if (balance < minimumBalance) {
+        const minimumBalance = ethers.utils.parseEther("0.01");
+        if (balance.lt(minimumBalance.toString())) { // Приводим minimumBalance к строке для сравнения
             throw new Error("Insufficient balance for deployment");
         }
 
         // Деплой контракта
-        const initialSupply = ethers.parseUnits("1000000", 18);
+        const initialSupply = ethers.utils.parseUnits("1000000", 18);
         const MyToken = await ethers.getContractFactory("MyToken");
         const token = await MyToken.deploy(initialSupply);
 
         console.log("Deploying token...");
-        const deployment = await token.deploymentTransaction();
-        if (!deployment) {
-            throw new Error("Deployment transaction failed");
-        }
-
-        console.log("Waiting for deployment...");
-        await deployment.wait(1);
-        
-        console.log("Token deployed to:", token.target);
+        // Ожидаем завершения деплоя
+        await token.deployed(); // вызываем метод deployed для ожидания завершения
+        console.log("Token deployed to:", token.address);
 
         // Верификация контракта
         if (process.env.ETHERSCAN_API_KEY) {
             console.log("Waiting for 6 block confirmations for verification...");
-            await deployment.wait(6);
+            const receipt = await token.deployTransaction.wait(6).then((receipt) => {
+                return receipt;
+            }).catch((error: any) => {
+                console.error("Error waiting for transaction confirmation:", error);
+                return null;
+            }); // ждем еще 6 блоков для подтверждения
 
-            console.log("Verifying contract...");
-            await verify(token.target, [initialSupply]);
-            console.log("Contract verified successfully");
+            if (receipt) {
+                console.log("Verifying contract...");
+                await run("verify:verify", {
+                    address: token.address,
+                    constructorArguments: [initialSupply],
+                });
+                console.log("Contract verified successfully");
+            } else {
+                console.error("Failed to get transaction receipt");
+            }
         }
 
-        return { success: true, address: token.target };
+        return { success: true, address: token.address };
     } catch (error) {
         console.error("Deployment failed:", error);
         return { success: false, error };

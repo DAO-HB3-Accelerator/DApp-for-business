@@ -6,7 +6,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: {
-      name: 'username_unique',
+      name: 'username_unique', // Это уникальность, она создаст индекс автоматически
       msg: 'Username must be unique.',
     },
     validate: {
@@ -19,7 +19,7 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: {
-      name: 'email_unique',
+      name: 'email_unique', // То же самое для email
       msg: 'Email must be unique.',
     },
     validate: {
@@ -45,16 +45,8 @@ const User = sequelize.define('User', {
     },
   },
 }, {
-  indexes: [
-    {
-      unique: true,
-      fields: ['username'],
-    },
-    {
-      unique: true,
-      fields: ['email'],
-    },
-  ],
+  // Убираем индекс уникальности, так как они уже добавлены в поля модели
+  indexes: [],
 });
 
 module.exports = User;

@@ -1,21 +1,21 @@
 {
     "development": {
-      "username": "Alex",
-      "password": "avtb140985",
+      "username": "${DB_USERNAME}",
+      "password": "${DB_PASSWORD}",
       "database": "HB3A",
       "host": "db",
       "dialect": "postgres"
     },
     "test": {
-      "username": "Alex",
-      "password": "avtb140985",
+      "username": "${DB_USERNAME}",
+      "password": "${DB_PASSWORD}",
       "database": "HB3A",
       "host": "db",
       "dialect": "postgres"
     },
     "production": {
-      "username": "Alex",
-      "password": "avtb140985",
+      "username": "${DB_USERNAME}",
+      "password": "${DB_PASSWORD}",
       "database": "HB3A",
       "host": "db",
       "dialect": "postgres"

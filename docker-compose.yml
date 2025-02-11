@@ -1,64 +1,29 @@
-version: '3.8'
+version: '3.8'  # Убедитесь, что используете актуальную версию
 
 services:
-  db:
-    image: postgres:14
-    container_name: dapp-for-business_db_1
-    networks:
-      - dapp-for-business_dapp-network
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dappdb
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d dappdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
-    build: .
-    image: node:16
-    container_name: dapp-node
-    networks:
-      - dapp-for-business_dapp-network
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      - NODE_ENV=development
-      - DATABASE_URL=postgres://user:password@db:5432/dappdb
+    build:
+      context: .
+      dockerfile: Dockerfile  # Укажите путь к вашему Dockerfile для бэкенда
+    env_file:
+      - .env  # Укажите файл .env здесь
     ports:
-      - "5000:5000"
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: "node server.js"
+      - "5000:5000"  # Порт, на котором будет работать бэкенд
+    depends_on:
+      - db  # Укажите зависимости, если есть
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    image: node:16
-    container_name: dapp-frontend
-    networks:
-      - dapp-for-business_dapp-network
+      context: ./frontend  # Укажите путь к папке с фронтендом
+      dockerfile: Dockerfile  # Укажите путь к вашему Dockerfile для фронтенда
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    working_dir: /app
-    command: "npm start"
+      - "3000:3000"  # Порт, на котором будет работать фронтенд
 
-volumes:
-  postgres_data:
-  grafana-data:
-
-networks:
-  dapp-for-business_dapp-network:
-    external: true
+  db:
+    image: postgres:latest  # Укажите образ для базы данных
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}  # Используйте переменные из .env
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - "5432:5432"  # Порт для доступа к базе данных

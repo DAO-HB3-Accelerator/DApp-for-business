@@ -1,11 +1,25 @@
+require('dotenv').config();
 const express = require('express');
 const sequelize = require('./config/db');
 const User = require('./models/user');
-const bcrypt = require('bcryptjs');
-require('dotenv').config();
+const bcrypt = require('bcrypt'); // Используем bcrypt вместо bcryptjs
+const { Op } = require('sequelize');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Защита HTTP-заголовков с помощью Helmet
+app.use(helmet());
+
+// Устанавливаем ограничение на количество запросов (например, 100 запросов за 15 минут)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 минут
+    max: 100, // Максимум 100 запросов за 15 минут
+    message: 'Too many requests, please try again later.'
+});
+app.use(limiter);
 
 // Добавляем middleware
 app.use(express.json());
@@ -38,7 +52,7 @@ app.post('/api/register', async (req, res) => {
         // Проверка существующего пользователя
         const existingUser = await User.findOne({ 
             where: { 
-                [sequelize.Op.or]: [{ username }, { email }] 
+                [Op.or]: [{ username }, { email }] 
             } 
         });
 
@@ -46,8 +60,8 @@ app.post('/api/register', async (req, res) => {
             return res.status(400).json({ error: 'Username or email already exists' });
         }
 
-        // Хеширование пароля
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Хеширование пароля (используем bcrypt)
+        const hashedPassword = await bcrypt.hash(password, 12); // Используем соль с 12 раундами
 
         // Создание пользователя
         const newUser = await User.create({
