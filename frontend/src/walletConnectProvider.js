@@ -1,4 +1,4 @@
-import { initWalletConnect, createSession, disconnectWallet } from "@reown/appkit";
+import { createSession as importedCreateSession, disconnectWallet } from "@reown/appkit";
 
 let signClient;
 let session; // Убрано export для устранения конфликта
@@ -66,8 +66,5 @@ export const disconnectWallet = async () => {
 
 // Убедитесь, что session экспортируется правильно
 export const getSession = () => session; // Функция для получения текущей сессии
-
-// Экспортируем session
-export { session }; // Добавьте эту строку, чтобы экспортировать session
 
 // ... rest of the existing code ...
