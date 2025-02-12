@@ -1,20 +1,27 @@
-# Используем официальный образ Node.js
-FROM node:20-alpine
+# Этап сборки: используем Node.js для установки зависимостей и сборки проекта
+FROM node:20-alpine as builder
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем package.json и package-lock.json
+# Копируем файлы зависимостей
 COPY package*.json ./
-
-# Устанавливаем зависимости
-RUN npm install 
+RUN npm install
 
 # Копируем исходный код
 COPY . .
 
-# Открываем порт
-EXPOSE 3000
+# Собираем проект (команда может быть "npm run build" для Create React App)
+RUN npm run build
 
-# Запускаем приложение
-CMD ["npm", "start"]
+# Этап продакшн: используем Nginx для отдачи статичных файлов
+FROM nginx:alpine
+
+# Копируем собранный билд в директорию для раздачи Nginx
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Открываем порт 80, по которому будет доступен сервис
+EXPOSE 80
+
+# Запускаем Nginx в foreground режиме
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,29 +1,44 @@
-version: '3.8'  # Убедитесь, что используете актуальную версию
+version: "3.9"
 
 services:
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile  # Укажите путь к вашему Dockerfile для бэкенда
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dapp-backend
+    # Подключаем файл с переменными окружения для сервера (секретные данные, ключи БД и т.д.)
     env_file:
-      - .env  # Укажите файл .env здесь
+      - ./backend/.env
     ports:
-      - "5000:5000"  # Порт, на котором будет работать бэкенд
+      - "5000:5000"
+    volumes:
+      - ./backend:/usr/src/app
+    # Если backend зависит от работы БД, можно добавить depends_on:
     depends_on:
-      - db  # Укажите зависимости, если есть
+      - db
 
   frontend:
     build:
-      context: ./frontend  # Укажите путь к папке с фронтендом
-      dockerfile: Dockerfile  # Укажите путь к вашему Dockerfile для фронтенда
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dapp-frontend
     ports:
-      - "3000:3000"  # Порт, на котором будет работать фронтенд
+      - "80:80"
+    depends_on:
+      - backend
 
   db:
-    image: postgres:latest  # Укажите образ для базы данных
+    image: postgres:14
+    container_name: dapp-db
+    restart: always
     environment:
-      POSTGRES_USER: ${DB_USERNAME}  # Используйте переменные из .env
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: "Alex"
+      POSTGRES_PASSWORD: "avtb140985"
+      POSTGRES_DB: "HB3A"
+    volumes:
+      - db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"  # Порт для доступа к базе данных
+      - "5432:5432"
+
+volumes:
+  db_data:

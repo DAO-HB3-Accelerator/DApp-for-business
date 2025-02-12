@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt'); // Используем bcrypt вместо bc
 const { Op } = require('sequelize');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,11 @@ app.use(limiter);
 // Добавляем middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Добавляем маршрут для корневого запроса GET /
+app.get('/', (req, res) => {
+  res.send('Server is running');
+});
 
 // Функция валидации email
 const validateEmail = (email) => {
@@ -86,28 +92,58 @@ app.get('/health', (req, res) => {
     res.json({ status: 'Server is running' });
 });
 
+// Роут для получения данных от внешнего API
+app.get('/api/data', async (req, res) => {
+    try {
+        const response = await axios.get('https://external-api.example.com/data', {
+            headers: {
+                'Authorization': `Bearer ${process.env.REOWN_API_KEY}`
+            }
+        });
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Обработка ошибок
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Something broke!' });
 });
 
-// Запуск сервера
-const startServer = async () => {
+// Добавляем функцию для ожидания готовности БД
+const waitForDB = async (retries = 10, delay = 3000) => {
+  for (let i = 0; i < retries; i++) {
     try {
-        await sequelize.authenticate();
-        console.log('Database connection established successfully.');
-        
-        await sequelize.sync();
-        console.log('Database synchronized.');
-
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
-        });
-    } catch (error) {
-        console.error('Unable to start server:', error);
-        process.exit(1);
+      await sequelize.authenticate();
+      console.log('Database is ready');
+      return;
+    } catch (err) {
+      console.log(`Database not ready, retrying in ${delay / 1000} seconds...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
+  }
+  throw new Error('Database connection failed after multiple retries');
+};
+
+// Запуск сервера с ожиданием готовности БД
+const startServer = async () => {
+  try {
+    // Вместо прямой аутентификации добавляем ожидание
+    await waitForDB();
+    console.log('Database connection established successfully.');
+    
+    await sequelize.sync();
+    console.log('Database synchronized.');
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Unable to start server:', error);
+    process.exit(1);
+  }
 };
 
 startServer();

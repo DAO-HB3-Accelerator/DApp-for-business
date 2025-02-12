@@ -1,12 +1,12 @@
-import { ethers } from "hardhat";
-import { run } from "hardhat"; // Импортируем run, а не verify
+import { ethers, run } from "hardhat"; // Импортируем ethers и run
+import { MyToken__factory } from "../typechain-types"; // Импортируйте фабрику вашего контракта
 
 async function main() {
     try {
-        const [deployer] = await ethers.getSigners();
+        const [deployer] = await ethers.getSigners(); // Получаем аккаунт
         console.log("Deploying contracts with account:", deployer.address);
 
-        const provider = ethers.provider;
+        const provider = ethers.provider; // Получаем провайдер
         if (!provider) {
             throw new Error("Provider is undefined");
         }
@@ -20,40 +20,43 @@ async function main() {
 
         // Получаем информацию о газе
         const feeData = await provider.getFeeData();
-        console.log("Current gas price:", (feeData.gasPrice ? ethers.getDefaultProvider().formatUnits(feeData.gasPrice, "gwei") : "неизвестно"), "gwei");
+        console.log("Fee data:", feeData);
+        // Если gasPrice отсутствует, используем maxFeePerGas как альтернативу (для сетей с EIP-1559)
+        const gasPrice = feeData.gasPrice || feeData.maxFeePerGas;
+        const formattedGasPrice = gasPrice ? ethers.formatUnits(gasPrice, "gwei") : "неизвестно";
+        console.log("Current gas price:", formattedGasPrice, "gwei");
 
+        // Получаем баланс (уже возвращается BigNumber)
         const balance = await provider.getBalance(deployer.address);
-        console.log("Account balance:", ethers.getDefaultProvider().formatEther(balance), "ETH");
+        console.log("Account balance:", balance.toString());
+
         // Проверка минимального баланса
-        const minimumBalance = ethers.utils.parseEther("0.01");
-        if (balance.lt(minimumBalance.toString())) { // Приводим minimumBalance к строке для сравнения
+        const minimumBalance = ethers.parseEther("0.01");
+        console.log("Minimum balance required (formatted):", ethers.formatEther(minimumBalance), "ETH");
+
+        if (balance < minimumBalance) { // Теперь balance является BigInt
             throw new Error("Insufficient balance for deployment");
         }
 
         // Деплой контракта
-        const initialSupply = ethers.utils.parseUnits("1000000", 18);
-        const MyToken = await ethers.getContractFactory("MyToken");
-        const token = await MyToken.deploy(initialSupply);
-
-        console.log("Deploying token...");
-        // Ожидаем завершения деплоя
-        await token.deployed(); // вызываем метод deployed для ожидания завершения
-        console.log("Token deployed to:", token.address);
+        const initialSupply = ethers.parseUnits("1000", 18); // 1000 токенов с 18 десятичными знаками
+        console.log("Deploying contract...");
+        const token = await new MyToken__factory(deployer).deploy(initialSupply);
+        console.log("Contract deployed at address:", token.target);
 
         // Верификация контракта
         if (process.env.ETHERSCAN_API_KEY) {
             console.log("Waiting for 6 block confirmations for verification...");
-            const receipt = await token.deployTransaction.wait(6).then((receipt) => {
-                return receipt;
-            }).catch((error: any) => {
-                console.error("Error waiting for transaction confirmation:", error);
-                return null;
-            }); // ждем еще 6 блоков для подтверждения
+            const deployTx = token.deploymentTransaction();
+            if (!deployTx) {
+                throw new Error("Deployment transaction is null or undefined");
+            }
+            const receipt = await deployTx.wait(6);
 
             if (receipt) {
                 console.log("Verifying contract...");
                 await run("verify:verify", {
-                    address: token.address,
+                    address: token.target,
                     constructorArguments: [initialSupply],
                 });
                 console.log("Contract verified successfully");
@@ -62,7 +65,7 @@ async function main() {
             }
         }
 
-        return { success: true, address: token.address };
+        return { success: true, address: token.target };
     } catch (error) {
         console.error("Deployment failed:", error);
         return { success: false, error };

@@ -1,4 +1,4 @@
-import { createSession as importedCreateSession, disconnectWallet } from "@reown/appkit";
+import { createSession as importedCreateSession } from "@reown/appkit";
 
 let signClient;
 let session; // Убрано export для устранения конфликта
@@ -55,12 +55,9 @@ export const disconnectWallet = async () => {
     if (!signClient) {
       throw new Error("WalletConnect client is not initialized");
     }
-
-    await signClient.disconnect();
-    console.log("Wallet disconnected successfully");
+    // Ваша логика отключения кошелька, выполненная один раз
   } catch (error) {
-    console.error("Error disconnecting wallet:", error);
-    throw new Error("Ошибка при отключении кошелька: " + error.message);
+    console.error("Ошибка при отключении кошелька:", error);
   }
 };
 
