@@ -1,4 +1,5 @@
-**DApp-for-business / Digital Legal Entity / DAO Fork**
+
+### DApp-for-business / Digital Legal Entity / DAO Fork ###
 
 We present a Web3 application template with a database for an AI assistant that provides omnichannel and multilingual customer support for businesses. The application includes the ability to create smart contracts for cryptocurrency payments with governance tokens and multisignature functionality, based on pre-designed templates for blockchains supporting smart contract technologies.
 
