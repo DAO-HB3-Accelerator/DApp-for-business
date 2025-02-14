@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@craco/craco": "^7.1.0",
     "@reown/appkit": "^1.6.8",
     "@reown/appkit-adapter-ethers": "^1.6.8",
     "@rollup/plugin-terser": "^0.4.4",
     "ethers": "^6.13.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "svgo": "^2.8.0",
     "typescript": "^4.9.5",
     "web-vitals": "^4.2.4"
@@ -19,10 +20,15 @@
     "@types/react-dom": "^18.0.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
   },
   "browserslist": {
     "production": [

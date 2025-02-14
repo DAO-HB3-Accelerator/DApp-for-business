@@ -1,9 +1,7 @@
 import { ethers } from "ethers";
-import { getSession } from "./walletConnectProvider"; // Импортируйте getSession вместо session
 
 // Адрес и ABI контракта
 const CONTRACT_ADDRESS = process.env.REACT_APP_CONTRACT_ADDRESS;
-const REOWN_API_KEY = process.env.REACT_APP_REOWN_API_KEY; // Добавлено для использования API ключа
 const CONTRACT_ABI = [
   {
     "inputs": [
@@ -59,27 +57,28 @@ export const resetCache = () => {
 };
 
 export async function getContract() {
-    const session = getSession(); // Получаем сессию через getSession
-    if (!session) {
+    // Используем window.ethereum, предоставляемый, например, MetaMask или reown/appkit после подключения
+    if (typeof window.ethereum === "undefined") {
         throw new Error("Wallet is not connected");
     }
 
     try {
         if (!cachedProvider) {
-            cachedProvider = new ethers.BrowserProvider(session);
+            cachedProvider = new ethers.BrowserProvider(window.ethereum);
         }
 
-        // Проверяем изменение сети
+        // Получаем текущую сеть и идентификатор цепочки
         const network = await cachedProvider.getNetwork();
         const currentChainId = network.chainId;
 
+        // Если сеть изменилась, сбрасываем кеш
         if (lastChainId && lastChainId !== currentChainId) {
             resetCache();
-            cachedProvider = new ethers.BrowserProvider(session);
+            cachedProvider = new ethers.BrowserProvider(window.ethereum);
         }
-
         lastChainId = currentChainId;
 
+        // Если контракт ещё не создан, получаем signer и создаем экземпляр контракта
         if (!cachedContract) {
             const signer = await cachedProvider.getSigner();
             cachedContract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);

@@ -2,13 +2,20 @@
   "name": "dapp-contracts",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "compile": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts --network sepolia",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "frontend": "npm start --workspace frontend",
+    "backend": "npm start --workspace backend"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.2.0",
+    "@reown/appkit": "^1.6.8",
     "dotenv": "^16.4.7",
     "ethers": "^5.7.2"
   },
@@ -19,5 +26,12 @@
     "ts-node": "^10.9.1",
     "typechain": "^8.2.0",
     "typescript": "^4.9.5"
+  },
+  "overrides": {
+    "semver": "^7.5.2",
+    "postcss": "^8.4.31",
+    "nth-check": "^2.0.1",
+    "cookie": "^0.7.0",
+    "ws": "^8.0.0"
   }
 }
