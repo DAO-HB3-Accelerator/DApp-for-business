@@ -4,6 +4,7 @@ import { EthersAdapter } from '@reown/appkit-adapter-ethers';
 import { arbitrum, mainnet } from '@reown/appkit/networks';
 import TokenBalance from "./TokenBalance";
 import TransferTokens from "./TransferTokens";
+import UserDashboard from "./components/UserDashboard";
 import "./App.css";
 
 // 1. Get projectId
@@ -41,6 +42,7 @@ function App() {
         <appkit-button />
       </header>
       <main>
+        <UserDashboard />
         <TokenBalance />
         <TransferTokens />
       </main>

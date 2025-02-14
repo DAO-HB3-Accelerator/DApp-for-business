@@ -11,7 +11,7 @@
     "deploy": "hardhat run scripts/deploy.ts --network sepolia",
     "test": "hardhat test",
     "frontend": "npm start --workspace frontend",
-    "backend": "npm start --workspace backend"
+    "backend": "npm run dev --workspace backend"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.2.0",
